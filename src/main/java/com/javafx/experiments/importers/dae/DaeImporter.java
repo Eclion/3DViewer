@@ -37,6 +37,7 @@ import javafx.scene.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.shape.VertexFormat;
 import javafx.scene.transform.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -49,7 +50,10 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.util.*;
+import java.util.stream.IntStream;
 
+
+//TODO: import controller, animations, face smoothing groups
 /**
  * Loader for ".dae" 3D files
  * <p>
@@ -137,7 +141,7 @@ public class DaeImporter extends Importer {
         return extension != null && extension.equals("dae");
     }
 
-    private static enum State {
+    private enum State {
         UNKNOWN, camera, visual_scene, node, aspect_ratio, xfov, yfov, znear, zfar, instance_camera, instance_geometry,
         translate, rotate, scale, matrix, float_array, polygons, input, p, vertices, authoring_tool, polylist, vcount
     }
@@ -398,9 +402,60 @@ public class DaeImporter extends Importer {
                         PolygonMesh mesh = new PolygonMesh(points, texCoords, faces);
                         meshes.put(currentId.get("geometry"), mesh);
                     } else {
-                        TriangleMesh mesh = new TriangleMesh();
+
+                        int faceStep = 1;
+
+                        Input vertexInput = inputs.get("VERTEX");
+                        if (vertexInput != null && (vertexInput.offset + 1) > faceStep)
+                            faceStep = vertexInput.offset + 1;
+                        points = floatArrays.get(vertexInput.source.substring(1));
+
+                        Input texInput = inputs.get("TEXCOORD");
+                        if (texInput != null && (texInput.offset + 1) > faceStep) faceStep = texInput.offset + 1;
+                        float[] texCoords;
+                        if (texInput == null) {
+                            texCoords = new float[]{0, 0};
+                        } else {
+                            texCoords = floatArrays.get(texInput.source.substring(1));
+                        }
+
+                        Input normalInput = inputs.get("NORMAL");
+                        boolean hasNormals = (normalInput != null);
+                        float[] normals = new float[]{};
+                        if (hasNormals) {
+                            normals = floatArrays.get(normalInput.source.substring(1));
+                            if ((normalInput.offset + 1) > faceStep)
+                                faceStep = normalInput.offset + 1;
+                        }
+
+                        final int inputCount = (hasNormals)? 3:2 ;
+
+                        int[] faces = new int[IntStream.of(vCounts).sum()*inputCount];
+                        int[] p = pLists.get(0);
+                        int pIndex = 0;
+
+                        int faceIndex = 0;
+                        for (int vCount : vCounts) {
+                            for (int v = 0; v < vCount; v++) {
+                                faces[faceIndex + v * inputCount] = p[pIndex + vertexInput.offset];
+                                if (hasNormals)
+                                    faces[faceIndex + v * inputCount + 1] = p[pIndex + normalInput.offset];
+                                faces[faceIndex + v * inputCount + inputCount - 1] = (texInput == null) ? 0 : p[pIndex + texInput.offset];
+                                pIndex += faceStep;
+                            }
+                            faceIndex += vCount * inputCount;
+                        }
+
+                        TriangleMesh mesh = (hasNormals)
+                                ? new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD)
+                                : new TriangleMesh(VertexFormat.POINT_TEXCOORD);
+
+                        mesh.getPoints().setAll(points);
+                        if (hasNormals) mesh.getNormals().setAll(normals);
+                        mesh.getTexCoords().setAll(texCoords);
+                        mesh.getFaces().setAll(faces);
+
                         meshes.put(currentId.get("geometry"), mesh);
-                        throw new UnsupportedOperationException("Need to implement TriangleMesh creation");
                     }
                     break;
             }
