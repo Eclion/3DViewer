@@ -9,7 +9,7 @@ It originally contains:
 * an [importer for Wavefront (.obj) files](https://github.com/teamfx/openjfx-8u-dev-rt/blob/master/apps/samples/3DViewer/src/main/java/com/javafx/experiments/importers/obj/ObjOrPolyObjImporter.java)
 * an [application to display 3D objects](https://github.com/teamfx/openjfx-8u-dev-rt/blob/master/apps/samples/3DViewer/src/main/java/com/javafx/experiments/jfx3dviewer/Jfx3dViewerApp.java)
 
-The goal of this repo is to improve the Collada importer:
+The goal of this repo is to improve the Collada importer, enabling Collada imports from Blender :
 * improving the implementation of the Collada importer
 * adding skeletal import from a Collada file
 * adding animation import from a Collada file
