@@ -6,15 +6,18 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Eclion
  */
 final class LibraryLightsParser extends DefaultHandler {
+    private final static Logger LOGGER = Logger.getLogger(LibraryLightsParser.class.getSimpleName());
     private StringBuilder charBuf = new StringBuilder();
     private Map<String, String> currentId = new HashMap<>();
 
-    private enum State {
+    private enum State { // all ignored for now
         UNKNOWN,
         adapt_thresh,
         area_shape,
@@ -95,7 +98,7 @@ final class LibraryLightsParser extends DefaultHandler {
         charBuf = new StringBuilder();
         switch (state(qName)) {
             case UNKNOWN:
-                System.out.println("Unknown element: " + qName);
+                LOGGER.log(Level.WARNING, "Unknown element: " + qName);
                 break;
             default:
                 break;

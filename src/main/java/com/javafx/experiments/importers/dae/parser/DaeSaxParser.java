@@ -1,18 +1,32 @@
 package com.javafx.experiments.importers.dae.parser;
 
+import javafx.scene.Camera;
+import javafx.scene.Group;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Eclion
  */
 final public class DaeSaxParser extends DefaultHandler {
     private DefaultHandler subHandler;
-    private Map<String, DefaultHandler> finishedHandlers = new HashMap<>();
+
+    AssetParser assetParser;
+    SceneParser sceneParser;
+    LibraryAnimationsParser libraryAnimationsParser;
+    LibraryCamerasParser libraryCamerasParser;
+    LibraryControllerParser libraryControllerParser;
+    LibraryEffectsParser libraryEffects;
+    LibraryGeometriesParser libraryGeometriesParser;
+    LibraryImagesParser libraryImagesParser;
+    LibraryLightsParser libraryLightsParser;
+    LibraryMaterialsParser libraryMaterialsParser;
+    LibraryVisualSceneParser libraryVisualSceneParser;
+    private boolean createPolyMesh = true;
+    private Camera firstCamera;
+    private Group rootNode;
+    private double firstCameraAspectRatio = 4.0f/3.0f;
 
     private enum State {
         UNKNOWN,
@@ -21,9 +35,11 @@ final public class DaeSaxParser extends DefaultHandler {
         library_animations,
         library_cameras,
         library_controllers,
+        library_effects,
         library_geometries,
         library_images,
         library_lights,
+        library_materials,
         library_visual_scenes
     }
 
@@ -37,34 +53,51 @@ final public class DaeSaxParser extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        System.out.println("start: " + qName);
         switch (state(qName)) {
             case asset:
-                subHandler = new AssetParser();
+                assetParser = new AssetParser();
+                subHandler = assetParser;
                 break;
             case scene:
-                subHandler = new SceneParser();
+                sceneParser = new SceneParser();
+                subHandler = sceneParser;
                 break;
             case library_animations:
-                subHandler = new LibraryAnimationsParser();
+                libraryAnimationsParser = new LibraryAnimationsParser();
+                subHandler = libraryAnimationsParser;
                 break;
             case library_cameras:
-                subHandler = new LibraryCamerasParser();
+                libraryCamerasParser = new LibraryCamerasParser();
+                subHandler = libraryCamerasParser;
                 break;
             case library_controllers:
-                subHandler = new LibraryControllers();
+                libraryControllerParser = new LibraryControllerParser();
+                subHandler = libraryControllerParser;
+                break;
+            case library_effects:
+                libraryEffects = new LibraryEffectsParser();
+                subHandler = libraryEffects;
                 break;
             case library_geometries:
-                subHandler = new LibraryGeometriesParser();
+                libraryGeometriesParser = new LibraryGeometriesParser();
+                libraryGeometriesParser.setCreatePolyMesh(createPolyMesh);
+                subHandler = libraryGeometriesParser;
                 break;
             case library_images:
-                subHandler = new LibraryImagesParser();
+                libraryImagesParser = new LibraryImagesParser();
+                subHandler = libraryImagesParser;
                 break;
             case library_lights:
-                subHandler = new LibraryLightsParser();
+                libraryLightsParser = new LibraryLightsParser();
+                subHandler = libraryLightsParser;
+                break;
+            case library_materials:
+                libraryMaterialsParser = new LibraryMaterialsParser();
+                subHandler = libraryMaterialsParser;
                 break;
             case library_visual_scenes:
-                subHandler = new LibraryVisualSceneParser();
+                libraryVisualSceneParser = new LibraryVisualSceneParser();
+                subHandler = libraryVisualSceneParser;
                 break;
             default:
                 if (subHandler != null) subHandler.startElement(uri, localName, qName, attributes);
@@ -74,25 +107,35 @@ final public class DaeSaxParser extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        System.out.println("start: " + qName);
-        switch (state(qName)) {
-            case asset:
-            case library_images:
-            case library_geometries:
-            case library_animations:
-            case library_controllers:
-            case library_visual_scenes:
-            case scene:
-                finishedHandlers.put(qName, subHandler);
-                break;
-            default:
-                if (subHandler != null) subHandler.endElement(uri, localName, qName);
-                break;
-        }
+        if (subHandler != null) subHandler.endElement(uri, localName, qName);
     }
 
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
         if (subHandler != null) subHandler.characters(ch, start, length);
+    }
+
+    public void setCreatePolyMesh(boolean createPolyMesh) {
+        this.createPolyMesh = createPolyMesh;
+    }
+
+    public Group getRootNode() {
+        return rootNode;
+    }
+
+    public Camera getFirstCamera() {
+        return firstCamera;
+    }
+
+    public double getFirstCameraAspectRatio() {
+        return firstCameraAspectRatio;
+    }
+
+    public void build() {
+        rootNode = libraryVisualSceneParser.getRootNode();
+        if (libraryCamerasParser != null){
+            firstCamera = libraryCamerasParser.getFirstCamera();
+            firstCameraAspectRatio = libraryCamerasParser.getFirstCameraAspectRatio();
+        }
     }
 }

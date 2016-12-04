@@ -6,11 +6,14 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Eclion
  */
 final class LibraryImagesParser extends DefaultHandler {
+    private static final Logger LOGGER = Logger.getLogger(LibraryImagesParser.class.getSimpleName());
     private StringBuilder charBuf = new StringBuilder();
     private Map<String, String> currentId = new HashMap<>();
 
@@ -32,7 +35,7 @@ final class LibraryImagesParser extends DefaultHandler {
         charBuf = new StringBuilder();
         switch (state(qName)) {
             case UNKNOWN:
-                System.out.println("Unknown element: " + qName);
+                LOGGER.log(Level.WARNING, "Unknown element: " + qName);
                 break;
             default:
                 break;

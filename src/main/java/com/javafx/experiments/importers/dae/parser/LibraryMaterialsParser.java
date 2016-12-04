@@ -6,32 +6,23 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Eclion
  */
-final class LibraryControllers extends DefaultHandler {
+final class LibraryMaterialsParser extends DefaultHandler {
+    private static final Logger LOGGER = Logger.getLogger(LibraryMaterialsParser.class.getSimpleName());
     private StringBuilder charBuf = new StringBuilder();
     private Map<String, String> currentId = new HashMap<>();
-    private Map<String, Input> inputs = new HashMap<>();
+
+    private Map<String, String> materialEffectMap = new HashMap<>();
 
     private enum State {
         UNKNOWN,
-        accessor,
-        bind_shape_matrix,
-        controller,
-        float_array,
-        input,
-        joints,
-        Name_array,
-        param,
-        skin,
-        source,
-        technique_common,
-        v,
-        vcount,
-        vertex_weights
-
+        instance_effect,
+        material //ignored
     }
 
     private static State state(String name) {
@@ -48,11 +39,10 @@ final class LibraryControllers extends DefaultHandler {
         charBuf = new StringBuilder();
         switch (state(qName)) {
             case UNKNOWN:
-                System.out.println("Unknown element: " + qName);
+                LOGGER.log(Level.WARNING, "Unknown element: " + qName);
                 break;
-            case input:
-                Input input = ParserUtils.createInput(attributes);
-                inputs.put(input.semantic, input);
+            case instance_effect:
+                materialEffectMap.put(currentId.get("material"), attributes.getValue("url"));
                 break;
             default:
                 break;
@@ -62,8 +52,6 @@ final class LibraryControllers extends DefaultHandler {
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
         switch (state(qName)) {
-            case UNKNOWN:
-                break;
             default:
                 break;
         }

@@ -12,25 +12,30 @@ import java.util.logging.Logger;
 /**
  * @author Eclion
  */
-final class AssetParser extends DefaultHandler {
-    private final static Logger LOGGER = Logger.getLogger(AssetParser.class.getName());
+final class LibraryControllerParser extends DefaultHandler {
+    private static final Logger LOGGER = Logger.getLogger(LibraryControllerParser.class.getSimpleName());
     private StringBuilder charBuf = new StringBuilder();
     private Map<String, String> currentId = new HashMap<>();
-    private String author;
-    private String authoringTool;
-    private String unit;
-    private float scale;
-    private String upAxis;
+    private Map<String, Input> inputs = new HashMap<>();
+    private Map<String, float[]> floatArrays = new HashMap<>();
+    private int[] vCounts;
 
     private enum State {
         UNKNOWN,
-        author,
-        authoring_tool,
-        contributor, //ignored
-        created, //ignored
-        modified, //ignored
-        unit,
-        up_axis
+        accessor,
+        bind_shape_matrix,
+        controller,
+        float_array,
+        input,
+        joints,
+        Name_array,
+        param,
+        skin,
+        source,
+        technique_common,
+        v,
+        vcount,
+        vertex_weights
 
     }
 
@@ -50,9 +55,10 @@ final class AssetParser extends DefaultHandler {
             case UNKNOWN:
                 LOGGER.log(Level.WARNING, "Unknown element: " + qName);
                 break;
-            case unit:
-                unit = attributes.getValue("name");
-                scale = Float.parseFloat(attributes.getValue(unit));
+            case input:
+                Input input = ParserUtils.createInput(attributes);
+                inputs.put(input.semantic, input);
+                break;
             default:
                 break;
         }
@@ -61,14 +67,15 @@ final class AssetParser extends DefaultHandler {
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
         switch (state(qName)) {
-            case author:
-                author = charBuf.toString().trim();
+            case UNKNOWN:
                 break;
-            case authoring_tool:
-                authoringTool = charBuf.toString().trim();
+            case float_array:
+                floatArrays.put(currentId.get("source"),
+                        ParserUtils.extractFloatArray(charBuf));
                 break;
-            case up_axis:
-                upAxis = charBuf.toString().trim();
+            case vcount:
+                saveVerticesCounts();
+                break;
             default:
                 break;
         }
@@ -77,5 +84,13 @@ final class AssetParser extends DefaultHandler {
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
         charBuf.append(ch, start, length);
+    }
+
+    private void saveVerticesCounts() {
+        String[] numbers = charBuf.toString().trim().split("\\s+");
+        vCounts = new int[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            vCounts[i] = Integer.parseInt(numbers[i].trim());
+        }
     }
 }
