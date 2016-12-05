@@ -28,7 +28,7 @@ final class LibraryEffectsParser extends DefaultHandler {
     //private Color ambient;
     private Color diffuse;
     //private Color emission;
-    //private Color specular;
+    private Color specular;
 
     //private Float shininess;
     //private Float refractionIndex;
@@ -48,7 +48,7 @@ final class LibraryEffectsParser extends DefaultHandler {
         phong,
         profile_COMMON, //ignored
         shininess, //ignored
-        specular, //ignored
+        specular,
         technique //ignored
     }
 
@@ -71,8 +71,8 @@ final class LibraryEffectsParser extends DefaultHandler {
                 LOGGER.log(Level.WARNING, "Unknown element: " + qName);
                 break;
             case phong:
-                diffuse = null;
-                //ambient = diffuse = emission = specular = null;
+                diffuse = specular = null;
+                //ambient = diffuse = emission = null;
                 //shininess = refractionIndex = null;
                 break;
             case color:
@@ -107,15 +107,17 @@ final class LibraryEffectsParser extends DefaultHandler {
                 refractionIndex = tempFloat;
                 break;*/
             case phong:
-                materials.put(currentId.get("effect"), new PhongMaterial(diffuse));
+                PhongMaterial material = new PhongMaterial(diffuse);
+                if(specular!=null) material.setSpecularColor(specular);
+                materials.put(currentId.get("effect"), material);
                 // commented nearly all parameters as only diffuse is used in the JavaFX's phong impl
                 break;
             /*case shininess:
                 shininess = tempFloat;
-                break;
+                break;*/
             case specular:
                 specular = tempColor;
-                break;*/
+                break;
             default:
                 break;
         }
