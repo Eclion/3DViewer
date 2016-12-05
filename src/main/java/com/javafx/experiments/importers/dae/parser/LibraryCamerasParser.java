@@ -19,9 +19,9 @@ final class LibraryCamerasParser extends DefaultHandler {
     private StringBuilder charBuf = new StringBuilder();
     private Map<String, String> currentId = new HashMap<>();
     private Double aspect_ratio, xfov, yfov, znear, zfar;
-    private Camera firstCamera = null;
-    private Map<String, Camera> cameras = new HashMap<>();
-    private double firstCameraAspectRatio = 4 / 3;
+    Camera firstCamera = null;
+    Map<String, Camera> cameras = new HashMap<>();
+    double firstCameraAspectRatio = 4 / 3;
 
     private enum State {
         UNKNOWN,
@@ -112,15 +112,5 @@ final class LibraryCamerasParser extends DefaultHandler {
             firstCamera = camera;
             if (aspect_ratio != null) firstCameraAspectRatio = aspect_ratio;
         }
-    }
-
-    Camera getFirstCamera()
-    {
-        return firstCamera;
-    }
-
-    double getFirstCameraAspectRatio()
-    {
-        return firstCameraAspectRatio;
     }
 }

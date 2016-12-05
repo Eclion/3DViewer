@@ -25,7 +25,7 @@ final class LibraryGeometriesParser extends DefaultHandler {
     private Map<String, float[]> floatArrays = new HashMap<>();
     private Map<String, Input> inputs = new HashMap<>();
     private List<int[]> pLists = new ArrayList<>();
-    private Map<String, Object> meshes = new HashMap<>();
+    Map<String, Object> meshes = new HashMap<>();
     private boolean createPolyMesh;
     private int[] vCounts;
 

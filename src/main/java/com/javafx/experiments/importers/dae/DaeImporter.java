@@ -124,8 +124,7 @@ public class DaeImporter extends Importer {
             parser.setCreatePolyMesh(createPolygonMesh);
             saxParser.parse(url, parser);
 
-            parser.build();
-            rootNode.getChildren().addAll(parser.getRootNode().getChildren());
+            parser.buildScene(rootNode);
             firstCamera = parser.getFirstCamera();
             firstCameraAspectRatio = parser.getFirstCameraAspectRatio();
 
