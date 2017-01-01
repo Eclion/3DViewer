@@ -26,4 +26,13 @@ final class ParserUtils {
                 attributes.getValue("semantic"),
                 attributes.getValue("source"));
     }
+
+    public static double[] extractDoubleArray(StringBuilder charBuf) {
+        String[] numbers = charBuf.toString().trim().split("\\s+");
+        double[] array = new double[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            array[i] = Float.parseFloat(numbers[i].trim());
+        }
+        return array;
+    }
 }

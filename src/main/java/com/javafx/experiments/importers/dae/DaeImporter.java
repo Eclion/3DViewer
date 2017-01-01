@@ -126,6 +126,8 @@ public class DaeImporter extends Importer {
             parser.setCreatePolyMesh(createPolygonMesh);
             saxParser.parse(url, parser);
 
+            buildTimeline(parser);
+
             parser.buildScene(rootNode);
             firstCamera = parser.getFirstCamera();
             firstCameraAspectRatio = parser.getFirstCameraAspectRatio();
@@ -138,6 +140,11 @@ public class DaeImporter extends Importer {
         System.out.println("IMPORTED [" + url + "] in  " + ((END - START)) + "ms");
     }
 
+    private void buildTimeline(DaeSaxParser parser) {
+        timeline = new Timeline();
+        timeline.getKeyFrames().addAll(parser.getAllKeyFrames());
+    }
+
     @Override
     public boolean isSupported(String extension) {
         return extension != null && extension.equals("dae");
@@ -145,6 +152,6 @@ public class DaeImporter extends Importer {
 
     @Override
     public Timeline getTimeline() {
-        return null;
+        return timeline;
     }
 }

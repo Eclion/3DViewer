@@ -47,7 +47,7 @@ public final class DaeNode {
         return children.values().stream().anyMatch(child -> child.type.equalsIgnoreCase("JOINT"));
     }
 
-    public boolean isBones() {
+    public boolean isJoint() {
         return type.equalsIgnoreCase("JOINT");
     }
 

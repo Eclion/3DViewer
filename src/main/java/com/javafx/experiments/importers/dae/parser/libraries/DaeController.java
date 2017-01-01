@@ -6,12 +6,12 @@ import javafx.scene.transform.Affine;
  * @author Eclion
  */
 public class DaeController {
-    String name;
-    String id;
+    final String name;
+    final String id;
 
     public String skinId;
     public Affine bindShapeMatrix;
-    public String[] boneNames;
+    public String[] jointNames;
     Affine[] bindPoses;// not used in jagatoo...
     public float[][] vertexWeights;
     //cf XMLskin.buildInfluence

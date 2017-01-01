@@ -33,6 +33,7 @@
 package com.javafx.experiments.importers.maya;
 
 import javafx.scene.Group;
+import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
@@ -53,35 +54,49 @@ public class Joint extends Group {
 
     public final Rotate jox = new Rotate();
 
-    { jox.setAxis(Rotate.X_AXIS); }
+    {
+        jox.setAxis(Rotate.X_AXIS);
+    }
 
     public final Rotate joy = new Rotate();
 
-    { joy.setAxis(Rotate.Y_AXIS); }
+    {
+        joy.setAxis(Rotate.Y_AXIS);
+    }
 
     public final Rotate joz = new Rotate();
 
-    { joz.setAxis(Rotate.Z_AXIS); }
+    {
+        joz.setAxis(Rotate.Z_AXIS);
+    }
 
     public final Rotate rx = new Rotate();
 
-    { rx.setAxis(Rotate.X_AXIS); }
+    {
+        rx.setAxis(Rotate.X_AXIS);
+    }
 
     public final Rotate ry = new Rotate();
 
-    { ry.setAxis(Rotate.Y_AXIS); }
+    {
+        ry.setAxis(Rotate.Y_AXIS);
+    }
 
     public final Rotate rz = new Rotate();
 
-    { rz.setAxis(Rotate.Z_AXIS); }
+    {
+        rz.setAxis(Rotate.Z_AXIS);
+    }
 
     public final Scale s = new Scale();
     public final Scale is = new Scale();
     // should bind "is" to be in the inverse of the parent's "s"
 
+    public final Affine a = new Affine();
+
     public Joint() {
         super();
-        getTransforms().addAll(t, is, joz, joy, jox, rz, ry, rx, s);
+        getTransforms().addAll(t, is, joz, joy, jox, rz, ry, rx, s, a);
     }
 }
 

@@ -132,10 +132,16 @@ final class LibraryGeometriesParser extends DefaultHandler {
     }
 
     private void createPolygonsPolyMesh() {
-        // create mesh put in map
-        PolygonMesh mesh = new PolygonMesh();
-        meshes.put(currentId.get("geometry"), mesh);
-        throw new UnsupportedOperationException("Need to implement TriangleMesh creation");
+        Input vertexInput = inputs.get("VERTEX");
+        Input texInput = inputs.get("TEXCOORD");
+        float[] points = floatArrays.get(vertexInput.source.substring(1));
+        float[] texCoords = floatArrays.get(texInput.source.substring(1));
+        int[][] faces = new int[pLists.size()][];
+        for(int f=0;f<faces.length;f++) {
+            faces[f] = pLists.get(f);
+        }
+        PolygonMesh mesh = new PolygonMesh(points,texCoords,faces);
+        meshes.put(currentId.get("geometry"),mesh);
     }
 
     private void createPolylistTriangleMesh() {
@@ -196,60 +202,36 @@ final class LibraryGeometriesParser extends DefaultHandler {
     }
 
     private void createPolylistPolyMesh() {
-        // create mesh put in map
         int faceStep = 1;
-
         Input vertexInput = inputs.get("VERTEX");
-        if (vertexInput != null && (vertexInput.offset + 1) > faceStep)
-            faceStep = vertexInput.offset + 1;
-        float[] points = floatArrays.get(vertexInput.source.substring(1));
-
+        if (vertexInput!=null && (vertexInput.offset+1) > faceStep) faceStep = vertexInput.offset+1;
         Input texInput = inputs.get("TEXCOORD");
-        if (texInput != null && (texInput.offset + 1) > faceStep) faceStep = texInput.offset + 1;
+        if (texInput!=null && (texInput.offset+1) > faceStep) faceStep = texInput.offset+1;
+        Input normalInput = inputs.get("NORMAL");
+        if (normalInput!=null && (normalInput.offset+1) > faceStep) faceStep = normalInput.offset+1;
+        float[] points = floatArrays.get(vertexInput.source.substring(1));
         float[] texCoords;
-        if (texInput == null) {
-            texCoords = new float[]{0, 0};
+        if (texInput==null) {
+            texCoords = new float[]{0,0};
         } else {
             texCoords = floatArrays.get(texInput.source.substring(1));
         }
-
-        Input normalInput = inputs.get("NORMAL");
-        boolean hasNormals = (normalInput != null);
-        float[] normals = new float[]{};
-        if (hasNormals) {
-            normals = floatArrays.get(normalInput.source.substring(1));
-            if ((normalInput.offset + 1) > faceStep)
-                faceStep = normalInput.offset + 1;
-        }
-
-        final int inputCount = (hasNormals) ? 3 : 2;
-
-        int[] faces = new int[IntStream.of(vCounts).sum() * inputCount];
+        int[][] faces = new int[vCounts.length][];
         int[] p = pLists.get(0);
-        int pIndex = 0;
-
         int faceIndex = 0;
-        for (int vCount : vCounts) {
-            for (int v = 0; v < vCount; v++) {
-                faces[faceIndex + v * inputCount] = p[pIndex + vertexInput.offset];
-                if (hasNormals)
-                    faces[faceIndex + v * inputCount + 1] = p[pIndex + normalInput.offset];
-                faces[faceIndex + v * inputCount + inputCount - 1] = (texInput == null) ? 0 : p[pIndex + texInput.offset];
-                pIndex += faceStep;
+        for(int f=0;f<faces.length;f++) {
+            final int numOfVertex = vCounts[f];
+            final int[] face = new int[numOfVertex*2];
+            for(int v=0;v<numOfVertex;v++) {
+                final int vertexIndex =faceIndex+(v*faceStep);
+                face[v*2] = p[vertexIndex+vertexInput.offset];
+                face[(v*2)+1] = (texInput==null) ? 0 : p[vertexIndex+texInput.offset];
             }
-            faceIndex += vCount * inputCount;
+            faces[f] = face;
+            faceIndex += numOfVertex*faceStep;
         }
-
-        TriangleMesh mesh = (hasNormals)
-                ? new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD)
-                : new TriangleMesh(VertexFormat.POINT_TEXCOORD);
-
-        mesh.getPoints().setAll(points);
-        if (hasNormals) mesh.getNormals().setAll(normals);
-        mesh.getTexCoords().setAll(texCoords);
-        mesh.getFaces().setAll(faces);
-
-        meshes.put(currentId.get("geometry"), mesh);
+        PolygonMesh mesh = new PolygonMesh(points,texCoords,faces);
+        meshes.put(currentId.get("geometry"),mesh);
     }
 
     private void saveVerticesCounts() {

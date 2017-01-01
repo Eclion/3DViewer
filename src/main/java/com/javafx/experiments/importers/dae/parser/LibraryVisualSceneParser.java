@@ -17,7 +17,8 @@ import java.util.logging.Logger;
 /**
  * @author Eclion
  */
-final class LibraryVisualSceneParser extends DefaultHandler {
+final class
+LibraryVisualSceneParser extends DefaultHandler {
     private final static Logger LOGGER = Logger.getLogger(LibraryVisualSceneParser.class.getSimpleName());
     private StringBuilder charBuf = new StringBuilder();
     private Map<String, String> currentId = new HashMap<>();
@@ -125,7 +126,6 @@ final class LibraryVisualSceneParser extends DefaultHandler {
         charBuf.append(ch, start, length);
     }
 
-
     private void addTranslation() {
         String[] tv = charBuf.toString().trim().split("\\s+");
         nodes.peek().transforms.add(new Translate(
@@ -135,7 +135,8 @@ final class LibraryVisualSceneParser extends DefaultHandler {
         ));
     }
 
-    private void addRotation() {
+    private void addRotation()
+    {
         String[] rv = charBuf.toString().trim().split("\\s+");
         nodes.peek().transforms.add(new Rotate(
                 Double.parseDouble(rv[3].trim()),

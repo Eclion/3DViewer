@@ -128,7 +128,7 @@ final class LibraryControllerParser extends DefaultHandler {
                         ParserUtils.extractFloatArray(charBuf));
                 break;
             case Name_array:
-                controllers.get(currentControllerId).boneNames = charBuf.toString().trim().split("\\s+");
+                controllers.get(currentControllerId).jointNames = charBuf.toString().trim().split("\\s+");
                 break;
             case v:
                 saveVertices();
@@ -172,7 +172,7 @@ final class LibraryControllerParser extends DefaultHandler {
         int weightOffset = weightInput.offset;
         float[] weightValues = floatArrays.get(weightInput.source.substring(1));
 
-        int nbJoints = controllers.get(currentControllerId).boneNames.length;
+        int nbJoints = controllers.get(currentControllerId).jointNames.length;
         float[][] weights = new float[nbJoints][nbPoints];
 
         int index = 0;

@@ -3,16 +3,25 @@ package com.javafx.experiments.importers.dae.parser;
 import com.javafx.experiments.importers.dae.parser.libraries.DaeController;
 import com.javafx.experiments.importers.dae.parser.libraries.DaeNode;
 import com.javafx.experiments.importers.dae.parser.libraries.DaeScene;
+import com.javafx.experiments.importers.dae.parser.libraries.DaeSkeleton;
+import com.javafx.experiments.importers.maya.Joint;
+import com.javafx.experiments.shape3d.PolygonMesh;
+import com.javafx.experiments.shape3d.PolygonMeshView;
+import com.javafx.experiments.shape3d.SkinningMesh;
+import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
 import javafx.scene.Camera;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Affine;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -190,7 +199,12 @@ final public class DaeSaxParser extends DefaultHandler {
     private Node getMesh(DaeNode node) {
         Node meshView;
         Object mesh = libraryGeometriesParser.meshes.get(node.instance_geometry_id);
-        meshView = new MeshView((TriangleMesh) mesh);
+        if (mesh instanceof PolygonMesh) {
+            meshView = new PolygonMeshView((PolygonMesh) mesh);
+        } else {
+            meshView = new MeshView((TriangleMesh) mesh);
+        }
+
         meshView.setId(node.name);
         meshView.getTransforms().addAll(node.transforms);
         return meshView;
@@ -199,20 +213,69 @@ final public class DaeSaxParser extends DefaultHandler {
     private Node getController(DaeNode node) {
         Node meshView;
         DaeController controller = libraryControllerParser.controllers.get(node.instance_controller_id);
+        DaeSkeleton skeleton = (DaeSkeleton) libraryVisualSceneParser.scenes.get(0).skeletons.values().toArray()[0];
         Object mesh = libraryGeometriesParser.meshes.get(controller.skinId);
 
-        meshView = new MeshView((TriangleMesh) mesh);
-        meshView.setId(node.name);
+//        Object mesh = libraryGeometriesParser.meshes.get(node.instance_geometry_id);
+        if (mesh instanceof PolygonMesh) {
 
-        //PolygonMesh mesh
-        //float[][] vertexWeights
-        //Affine[] bindTransforms
-        //Affine globalTransform
-        //List<Joint> joints
-        //List<Parent> jointForest
-        //SkinningMesh mesh = new SkinningMesh(mesh, vertexWeights, bindTransforms, globalTransform, joints, jointForest);
-        //meshView = new PolygonMeshView((PolygonMesh) mesh);
-        //cf @Loader l300
+            String[] bones = skeleton.joints.keySet().toArray(new String[]{});
+            Affine[] bindTransforms = new Affine[bones.length];
+            Joint[] joints = new Joint[bones.length];
+            skeleton.joints.values();
+            skeleton.bindTransforms.values();
+
+            for(int i = 0; i < bones.length; i++)
+            {
+                bindTransforms[i] = skeleton.bindTransforms.get(bones[i]);
+                joints[i] = skeleton.joints.get(bones[i]);
+            }
+
+            SkinningMesh skinningMesh = new SkinningMesh(
+                    (PolygonMesh) mesh, controller.vertexWeights, bindTransforms,
+                    controller.bindShapeMatrix, Arrays.asList(joints), Arrays.asList(skeleton));
+
+            meshView = new PolygonMeshView(skinningMesh);
+
+            final SkinningMeshTimer skinningMeshTimer = new SkinningMeshTimer(skinningMesh);
+            if (meshView.getScene() != null) {
+                skinningMeshTimer.start();
+            }
+            meshView.sceneProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue == null) {
+                    skinningMeshTimer.stop();
+                } else {
+                    skinningMeshTimer.start();
+                }
+            });
+        } else {
+            meshView = new MeshView((TriangleMesh) mesh);
+        }
+
+        meshView.setId(node.name);
         return meshView;
     }
+
+    public List<KeyFrame> getAllKeyFrames() {
+        List<KeyFrame> frames = new ArrayList<>();
+        libraryVisualSceneParser.scenes.peek().skeletons.values()
+                .forEach(skeleton -> libraryAnimationsParser.animations.values()
+                        .forEach(animation -> frames.addAll(animation.calculateAnimation(skeleton))));
+        return frames;
+    }
+
+
+    private class SkinningMeshTimer extends AnimationTimer {
+        private SkinningMesh mesh;
+
+        SkinningMeshTimer(SkinningMesh mesh) {
+            this.mesh = mesh;
+        }
+
+        @Override
+        public void handle(long l) {
+            mesh.update();
+        }
+    }
+
 }

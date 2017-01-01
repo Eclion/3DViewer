@@ -21,7 +21,7 @@ final class LibraryAnimationsParser extends DefaultHandler {
     private StringBuilder charBuf = new StringBuilder();
     private Map<String, String> currentId = new HashMap<>();
     private String currentAnimationId = "";
-    Map<String, DaeAnimation> animations = new HashMap<>();
+    public Map<String, DaeAnimation> animations = new HashMap<>();
     private LinkedList<DaeAnimation> currentAnimations = new LinkedList<>();
 
     private enum State {
@@ -56,10 +56,11 @@ final class LibraryAnimationsParser extends DefaultHandler {
                 break;
             case animation:
                 currentAnimationId = currentId.get(qName);
-                animations.put(currentAnimationId, new DaeAnimation(currentAnimationId));
+                currentAnimations.push(new DaeAnimation(currentAnimationId));
+                //animations.put(currentAnimationId, );
                 break;
             case channel:
-                animations.get(currentAnimationId).target = attributes.getValue("target");
+                currentAnimations.peek().target = attributes.getValue("target");
                 break;
             default:
                 break;
@@ -82,18 +83,17 @@ final class LibraryAnimationsParser extends DefaultHandler {
                 break;
             case float_array:
                 String sourceId = currentId.get(State.source.name());
-                float[] floatArray = ParserUtils.extractFloatArray(charBuf);
                 if (sourceId.equalsIgnoreCase(currentAnimationId+"-input"))
                 {
-                    animations.get(currentAnimationId).input = floatArray;
+                    currentAnimations.peek().input = ParserUtils.extractFloatArray(charBuf);
                 }
                 else if (sourceId.equalsIgnoreCase(currentAnimationId+"-output"))
                 {
-                    animations.get(currentAnimationId).output = floatArray;
+                    currentAnimations.peek().output = ParserUtils.extractDoubleArray(charBuf);
                 }
                 break;
             case Name_array:
-                animations.get(currentAnimationId).setInterpolations(
+                currentAnimations.peek().setInterpolations(
                         ParserUtils.extractNameArray(charBuf)
                 );
                 break;
