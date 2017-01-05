@@ -117,19 +117,7 @@ public final class SkinningMesh extends PolygonMesh {
         final ObservableFloatArray points = getPoints();
         relativePoints = new float[nJoints][nPoints * 3];
         for (int j = 0; j < nJoints; j++) {
-            Transform postBindTransform = null;
-            if(joints.get(j).parentProperty().isNotNull().get())
-            {
-                final Parent parentJoint = joints.get(j).parentProperty().get();
-                final int k = joints.indexOf(parentJoint);
-                if(k != -1) {
-                    postBindTransform = bindTransforms[k].createConcatenation(bindTransforms[j]);
-                }
-            }
-            if(postBindTransform == null)
-            {
-                postBindTransform = bindTransforms[j].createConcatenation(bindGlobalTransform);
-            }
+            Transform postBindTransform = bindTransforms[j].createConcatenation(bindGlobalTransform);
             for (int i = 0; i < nPoints; i++) {
                 final Point3D relativePoint = postBindTransform.transform(points.get(3 * i), points.get(3 * i + 1), points.get(3 * i + 2));
                 relativePoints[j][3 * i] = (float) relativePoint.getX();

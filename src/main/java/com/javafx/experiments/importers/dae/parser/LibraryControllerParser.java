@@ -124,8 +124,15 @@ final class LibraryControllerParser extends DefaultHandler {
                 init();
                 break;
             case float_array:
-                floatArrays.put(currentId.get("source"),
-                        ParserUtils.extractFloatArray(charBuf));
+                floatArrays.put(currentId.get("source"), ParserUtils.extractFloatArray(charBuf));
+                if(currentId.get("source").contains("bind_poses")) //TODO cf previous comments
+                {
+                    double[] doubleArray = ParserUtils.extractDoubleArray(charBuf);
+                    for(int i = 0; i < doubleArray.length/16; i++)
+                    {
+                        controllers.get(currentControllerId).bindTransforms.add(new Affine(doubleArray, MatrixType.MT_3D_4x4, i*16));
+                    }
+                }
                 break;
             case Name_array:
                 controllers.get(currentControllerId).jointNames = charBuf.toString().trim().split("\\s+");

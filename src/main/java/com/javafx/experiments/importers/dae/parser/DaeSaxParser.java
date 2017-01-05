@@ -227,7 +227,7 @@ final public class DaeSaxParser extends DefaultHandler {
 
             for(int i = 0; i < bones.length; i++)
             {
-                bindTransforms[i] = skeleton.bindTransforms.get(bones[i]);
+                bindTransforms[i] = controller.bindTransforms.get(i);
                 joints[i] = skeleton.joints.get(bones[i]);
             }
 
